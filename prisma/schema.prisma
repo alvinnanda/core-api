@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  password      String
+  role          Role     @default(USER)
+  membershipLevel MembershipLevel @default(FREE)
+  refreshToken  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  tokenUsage    TokenUsage[]
+  chats         Chat[]
+  chatThreads   ChatThread[]
+  plan          String    @default("starter")
+  tokenUnits     Int      @default(0)
+  tokenResetDate DateTime?
+
+  @@map("users")
+}
+
+model Chat {
+  id        String   @id @default(cuid())
+  message   String
+  response  String   @db.Text
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tokensUsed Int
+  threadId  String?   // Make nullable temporarily
+  thread    ChatThread? @relation(fields: [threadId], references: [id]) // Make optional temporarily
+  isHidden  Boolean   @default(false) // Allow hiding specific messages
+  metadata  Json?     // Optional metadata for messages
+  service   String    @default("anthropic") // Add this field
+  model     String    @default("sonnet")    // Add this field
+
+  @@index([userId])
+  @@index([threadId])
+}
+
+model ChatThread {
+  id          String    @id @default(uuid())
+  title       String?   // Optional title for the thread
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  chats       Chat[]
+  category    String?   // Optional category for organization
+  isArchived  Boolean   @default(false)
+  deletedAt   DateTime? // Soft delete support
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([category])
+  @@index([deletedAt])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum MembershipLevel {
+  FREE
+  BASIC
+  PREMIUM
+}
+
+model TokenUsage {
+  id        String   @id @default(cuid())
+  userId    Int
+  model     String
+  tokensUsed Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, model, createdAt])
+}
