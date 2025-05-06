@@ -17,7 +17,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Use environment variables for CORS configuration
-  const frontendUrl = process.env.FRONTEND_URL || 'http://192.168.1.19:3000';
+  const frontendUrl = process.env.FRONTEND_URL || 'https://takonai-zeta.vercel.app';
   
   // Updated CORS configuration
   await app.register(fastifyCors, {
