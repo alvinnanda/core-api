@@ -21,7 +21,7 @@ async function bootstrap() {
   
   // Updated CORS configuration
   await app.register(fastifyCors, {
-    origin: [frontendUrl],
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Origin', 
